@@ -5,9 +5,13 @@ Learn a few topics - Apply these via a project - Choose a new Project - Repeat
 The projects are as follows:
 
 Coffee Machine Simulator
+
 Bulls and Cows game
 
 Traffic Light Simulator
+
 Simple Banking system
+
 BattleShip game
+
 JSON Database
