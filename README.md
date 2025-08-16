@@ -4,14 +4,18 @@ Learn a few topics - Apply these via a project - Choose a new Project - Repeat
 
 The projects are as follows:
 
-Coffee Machine Simulator
+1. Coffee Machine Simulator
 
-Bulls and Cows game
+2. Bulls and Cows game
 
-Traffic Light Simulator
+3. Traffic Light Simulator
 
-Simple Banking system
+4. Simple Banking system
 
-BattleShip game
+5. BattleShip game
 
-JSON Database
+6. JSON Database
+
+To keep this repository only code-friendly, more information regarding the project details and things I learnt can be accessed from my portfolio below:
+
+https://tamimakhtar.github.io/
