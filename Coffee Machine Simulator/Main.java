@@ -26,7 +26,7 @@ public class CoffeeMachine { //Main is only for user interaction
     }
 }
 
-enum CoffeeType {
+enum CoffeeType { //use enum class to store requirements for each coffee type
     ESPRESSO(250,0,16,4),
     LATTE(350,75,20,7),
     CAPPUCCINO(200,100,12,6);
@@ -44,7 +44,7 @@ enum CoffeeType {
     }
 }
 
-class MachineState {
+class MachineState { //stores the current ingredients quantity, cups made until now and money
     static int water = 400;
     static int milk = 540;
     static int beans = 120;
@@ -106,8 +106,7 @@ class Worker {
         String msg = canMakeCoffee(coffee);
         System.out.println(msg);
 
-        if (msg.startsWith("I have enough resources")) {
-            // Update machine state after successful coffee preparation
+        if (msg.startsWith("I have enough resources")) { // Update machine state after successful coffee preparation
             MachineState.water -= coffee.reqWater;
             MachineState.milk -= coffee.reqMilk;
             MachineState.beans -= coffee.reqBeans;
