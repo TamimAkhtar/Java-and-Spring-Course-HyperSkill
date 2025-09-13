@@ -55,15 +55,15 @@ class Main {
                 return; // exit after sending
            }
 
-            JsonPreparationStrategy strategy = JsonStrategyFactory.selectStrategy(type, key, value, fileName);
-            JsonMaker maker = new JsonMaker();
-            maker.setStrategy(strategy);
-            String jsonString = maker.prepare();
+            JsonPreparationStrategy strategy = JsonStrategyFactory.selectStrategy(type, key, value, fileName); //selects which strategy is chosen (either CommandLine or read from file)
+            JsonMaker maker = new JsonMaker(); //create invoker class object
+            maker.setStrategy(strategy); //set chosen strategy
+            String jsonString = maker.prepare(); //use invoker to execute strategy
 
-            output.writeUTF(jsonString);
+            output.writeUTF(jsonString); //send json string
             System.out.println("Sent: " +jsonString);
 
-            String receivedString = input.readUTF();
+            String receivedString = input.readUTF(); //receive json response from server
             System.out.println("Received: " + receivedString);
 
         } catch (ClientInputException e) {
@@ -75,7 +75,7 @@ class Main {
     }
 }
 
-class SendRequest {
+class SendRequest { //class to deserialize arguments from command line
     private String type;
     private JsonElement key;
     private JsonElement value;
@@ -97,11 +97,11 @@ class SendRequest {
     }
 }
 
-interface JsonPreparationStrategy { //how to prepare JSON
+interface JsonPreparationStrategy { //Interface for how to prepare JSON
     String prepareJson();
 }
 
-class PrepareFromFile implements JsonPreparationStrategy {
+class PrepareFromFile implements JsonPreparationStrategy { //prepares Json by reading from file
     private final String fileName;
     String jsonString;
 
@@ -117,23 +117,24 @@ class PrepareFromFile implements JsonPreparationStrategy {
 
         try {
             if (!Files.exists(path.getParent())) {
-                Files.createDirectories(path.getParent());
+                Files.createDirectories(path.getParent()); //create directory for file if doesnt exist
             }
 
             // Ensure file exists
             if (!Files.exists(path)) {
-                Files.writeString(path, "{}"); // initialize empty JSON
+                Files.writeString(path, "{}"); // initialize empty JSON to the file
             }
 
             jsonString = Files.readString(path);
-            return jsonString;
+            return jsonString; //we can just return the file content as it is because its a Json file anyways
+
         } catch (IOException e) {
             throw new RuntimeException("Failed to read file with filepath: " + path + " | " + e.getMessage(), e);
         }
     }
 }
 
-class PrepareFromCommandLine implements JsonPreparationStrategy {
+class PrepareFromCommandLine implements JsonPreparationStrategy { //prepares Json from command arguments
     String type;
     JsonElement key;
     JsonElement value;
@@ -148,13 +149,13 @@ class PrepareFromCommandLine implements JsonPreparationStrategy {
 
     @Override
     public String prepareJson(){
-        SendRequest sendRequest = new SendRequest(type,key,value);
-        jsonString = gson.toJson(sendRequest);
+        SendRequest sendRequest = new SendRequest(type,key,value); //deserialize type, key and value to sendRequest object
+        jsonString = gson.toJson(sendRequest); //now serialize to Json String
         return jsonString;
     }
 }
 
-class JsonMaker {
+class JsonMaker { //invoker class of Command pattern
     private JsonPreparationStrategy strategy;
 
     public void setStrategy(JsonPreparationStrategy strategy) {
@@ -163,13 +164,13 @@ class JsonMaker {
 
     public String prepare() {
         return this.strategy.prepareJson();
-    }
+    } //execute Json preparation method
 }
 
 enum RequestType {
     GET, SET, DELETE , EXIT;
 
-    public static boolean isValid(String value) {
+    public static boolean isValid(String value) { //only accommodates valid requests
         if (value == null) return false;
         try {
             RequestType.valueOf(value.toUpperCase());
@@ -184,8 +185,8 @@ class JsonStrategyFactory {
 
     public static JsonPreparationStrategy selectStrategy(String type, JsonElement key, JsonElement value, String fileName) throws ClientInputException {
 
-        boolean useFile = fileName != null && !fileName.isBlank();
-        boolean useCmd = type != null && !type.isBlank();
+        boolean useFile = fileName != null && !fileName.isBlank(); //read from file if user specifies file name
+        boolean useCmd = type != null && !type.isBlank(); //take command line arguments if user specifies type
 
         // Validation first
 
@@ -230,12 +231,13 @@ class JsonStrategyFactory {
     }
 }
 
-class ClientInputException extends Exception {
+class ClientInputException extends Exception { //my custom class for handling exceptions
     public ClientInputException(String message) {
         super(message);
     }
 }
 
+//use Type Converter class to parse string arguments to JsonElement
 class TypeConverter implements IStringConverter<JsonElement> {
     @Override
     public JsonElement convert(String value) {

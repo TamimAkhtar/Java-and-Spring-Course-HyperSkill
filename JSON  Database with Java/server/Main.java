@@ -22,16 +22,19 @@ public class Main {
     private static final ReadWriteLock lock = new ReentrantReadWriteLock();
     private static volatile boolean running = true;
 
+
+    //static block to make sure that we always start with a valid json object
     static {
         try {
             if (!file.exists()) {
-                file.createNewFile();
-                Files.writeString(file.toPath(), "{}");
+                file.createNewFile(); //create empty file
+                Files.writeString(file.toPath(), "{}"); //initialize with empty Json object
             }
-            String content = Files.readString(file.toPath()).trim();
-            db = content.isBlank()
-                    ? new JsonObject()
-                    : JsonParser.parseString(content).getAsJsonObject();
+            String content = Files.readString(file.toPath()).trim(); //read file
+            db = content.isBlank() //if db.Json is blank after trim,
+                    ? new JsonObject() //start again with db = new Json object in memory
+                    : JsonParser.parseString(content).getAsJsonObject(); //otherwise parse content as json and convert it
+            // to json object, assigning the result to static db
         } catch (IOException e) {
             db = new JsonObject(); // fallback
         }
@@ -49,7 +52,7 @@ public class Main {
             while (running) {
                 Socket socket = server.accept(); //accept new connection
 
-                executor.submit(() -> handleClient(server, socket));
+                executor.submit(() -> handleClient(server, socket)); //every thread is passed a different socket object but the same server object
             }
 
         } catch (IOException e) {
@@ -60,8 +63,8 @@ public class Main {
         }
     }
 
-    //here the logic is that whenever an error is thrown in opening a ServerSeocket server or in the body of true,
-    //an IOException is thrown and executor is closed. so that means that in handleClient also throws any error,
+    //here the logic is that whenever an error is thrown in opening a ServerSeocket server or in the body of while,
+    //an IOException is thrown and executor is closed. so that means that if handleClient also throws any error,
     // the catch block will be run and any exceptions in handleClient method will be caught here
 
     private static void handleClient(ServerSocket server, Socket socket) {
@@ -146,19 +149,19 @@ public class Main {
     static SendResponse getFromFile(JsonElement keyElement) {
 
         Lock readLock = lock.readLock();
-        readLock.lock();
+        readLock.lock(); //lock file for reading but multiple readers can read file simultaneously
 
         try {
             JsonElement result;
 
-            if (keyElement.isJsonPrimitive()) {
+            if (keyElement.isJsonPrimitive()) { //key is a simple string
                 String key = keyElement.getAsString();
                 if (!db.has(key)) {
                     return new SendResponse("ERROR", null, "No such key");
                 }
                 result = db.get(key);
 
-            } else { // array of keys
+            } else { // key is an array
                 JsonArray keys = keyElement.getAsJsonArray();
                 result = traverse(db, keys);
                 if (result == null) {
@@ -177,7 +180,7 @@ public class Main {
 
     static SendResponse setToFile(JsonElement keyElement, JsonElement valueElement) {
         Lock writeLock = lock.writeLock();
-        writeLock.lock();
+        writeLock.lock(); // Wait until all readers finish, block other writers
 
         try {
             if (keyElement.isJsonPrimitive()) {
@@ -255,7 +258,7 @@ public class Main {
     }
 }
 
-class ReceivedRequest {
+class ReceivedRequest { //to deserialize json to ReceivedRequest object
     String type;
     JsonElement key;
     JsonElement value;
@@ -279,7 +282,7 @@ class ReceivedRequest {
     }
 }
 
-class SendResponse{
+class SendResponse{ //serialize SendResponse object to json and send
     String response;
     JsonElement value;
     String reason;
